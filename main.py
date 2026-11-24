@@ -15,6 +15,25 @@ import os
 
 ENTRY = "My agent wrote a plan, spawned three subagents, filed a progress report, then asked what I actually wanted."
 
+MAX_CHARS = 200
+
+
+def _validate(entry):
+    """Enforce the entry contract explicitly: exactly one line, <=200 chars.
+
+    The docstring states the invariant; this makes it fail loudly instead
+    of silently writing a malformed entry if ENTRY is ever edited.
+    """
+    if "\n" in entry or "\r" in entry:
+        raise ValueError("entry must be exactly one line (no newline)")
+    if not entry:
+        raise ValueError("entry must not be empty")
+    if len(entry) > MAX_CHARS:
+        raise ValueError(
+            "entry is %d characters, over the %d-character limit"
+            % (len(entry), MAX_CHARS)
+        )
+
 
 def _write_all(f, data):
     """Loop until every byte is written (partial writes happen)."""
@@ -27,6 +46,7 @@ def _write_all(f, data):
 
 
 def main():
+    _validate(ENTRY)
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     os.makedirs(out_dir, exist_ok=True)
     data = ENTRY.encode("utf-8")
